@@ -43,13 +43,33 @@
     container = new THREE.Object3D();
     
     
-    guiParam.sliceIndex = 50;
-    gui.add(guiParam, 'sliceIndex', 0, 256)
+    guiParam.sliceIndex = 23;
+    gui.add(guiParam, 'sliceIndex', 0, 275)
     .step(1)
     .name("Slice")
-    .onChange(function(val){
+    .onChange(function(indexSliceToDisplay){
       var uniforms = shaderMat.uniforms;
-      uniforms.indexSliceToDisplay.value = val;
+      //uniforms.indexSliceToDisplay.value = indexSliceToDisplay;
+      
+      var nbSlicePerRow = 23;
+      var nbSlicePerCol = 12;
+
+      var rowTexture = nbSlicePerCol - 1 - Math.floor(indexSliceToDisplay / nbSlicePerRow);
+      var colTexture = Math.floor( indexSliceToDisplay % nbSlicePerRow );
+      
+      // step to jump from a slice to another on a unit-sized texture
+      var stepWidth = 1.0 / nbSlicePerRow;
+      var stepHeight = 1.0 / nbSlicePerCol;
+
+    
+      var begining = {
+        h: stepWidth * colTexture ,
+        v: stepHeight * rowTexture
+      };
+      
+      
+      console.log( rowTexture + "  " + colTexture);
+      console.log(begining);
     })
     
     
@@ -62,7 +82,7 @@
     
     var orbit = new THREE.OrbitControls( camera, renderer.domElement );
     
-    var mosaicTexture = THREE.ImageUtils.loadTexture( "data/176_256_256_zspace.png" )
+    var mosaicTexture = THREE.ImageUtils.loadTexture( "data/176_256_256_zspace_DEBUG2.png" )
     mosaicTexture.magFilter = THREE.NearestFilter;
     mosaicTexture.minFilter = THREE.NearestFilter;
         
@@ -81,37 +101,37 @@
         },
         // the number of slice per row
         nbSlicePerRow: {
-          type: "i",
-          value: 23
+          type: "f",
+          value: 23.0
         },
         // the number of slice per column
-        nbSlicePerRowCol: {
-          type: "i",
-          value: 12
+        nbSlicePerCol: {
+          type: "f",
+          value: 12.0
         },
         // the number of slice in total
         nbSliceTotal: {
-          type: "i",
-          value: 256  // because along zspace
+          type: "f",
+          value: 276 //256  // because along zspace
         },
         // the index of the slice to display
         indexSliceToDisplay: {
-          type: "i",
-          value: 50 
+          type: "f",
+          value: 23.0//guiParam.sliceIndex 
         },
         // xspace length
         xspaceLength: {
-          type: "i",
+          type: "f",
           value: xspaceLength 
         },
         // yspace length
         yspaceLength: {
-          type: "i",
+          type: "f",
           value: yspaceLength 
         },
         // zspace length
         zspaceLength: {
-          type: "i",
+          type: "f",
           value: zspaceLength 
         },
         textures: {
