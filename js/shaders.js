@@ -68,12 +68,7 @@ shaders.fragment = `
   }
 
   
-    
   void main( void ) {
-    
-    
-    // the position within the shader
-    vec2 shaderPos = vUv;
     
     // step to jump from a slice to another on a unit-sized texture
     float sliceWidth = 1.0 / nbSlicePerRow;
@@ -83,9 +78,6 @@ shaders.fragment = `
     // (0.5 rounding is mandatory to deal with float as integers)
     float rowTexture = nbSlicePerCol - 1.0 - floor( (indexSliceToDisplay + 0.5) / nbSlicePerRow);
     float colTexture = modI( indexSliceToDisplay, nbSlicePerRow );
-    
-    float indexSliceToDisplay2 = indexSliceToDisplay + 0.0;
-    float nbSlicePerRow2 = nbSlicePerRow;
     
     vec2 posInTexture = vec2(
       sliceWidth * colTexture + vUv.x * sliceWidth ,
@@ -153,30 +145,20 @@ shaders.fragmentWorld = `
       worldCoordShifted.y < 0.0 || worldCoordShifted.y > yspaceLength ||
       worldCoordShifted.z < 0.0 || worldCoordShifted.z > zspaceLength)
     {
-        //gl_FragColor = vec4(0.0, 0.0, 0.0, 0.2);
         discard;
         return;
     }
-      
-    // the position within the shader
-    vec2 shaderPos = vUv;
     
     // step to jump from a slice to another on a unit-sized texture
     float sliceWidth = 1.0 / nbSlicePerRow;
     float sliceHeight = 1.0 / nbSlicePerCol;
     
-     
-    
     float indexSliceToDisplay = floor(worldCoordShifted.z + 0.5);
-    
     
     // row/col index of the slice within the grid of slices
     // (0.5 rounding is mandatory to deal with float as integers)
     float rowTexture = nbSlicePerCol - 1.0 - floor( (indexSliceToDisplay + 0.5) / nbSlicePerRow);
     float colTexture = modI( indexSliceToDisplay, nbSlicePerRow );
-    
-    float indexSliceToDisplay2 = indexSliceToDisplay + 0.0;
-    float nbSlicePerRow2 = nbSlicePerRow;
     
     vec2 posInTexture = vec2(
       sliceWidth * colTexture + worldCoordShifted.x/xspaceLength * sliceWidth ,
@@ -185,5 +167,4 @@ shaders.fragmentWorld = `
     
     gl_FragColor = texture2D(textures[0], posInTexture);
   }
-
 `
