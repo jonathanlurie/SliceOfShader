@@ -4,6 +4,7 @@ var shaders = {};
 /* ***************** VERTEX SHADER ****************************************** */
 
 shaders.vertex = `
+  precision highp float;
   varying  vec2 vUv;
   varying  vec4 worldCoord;
 
@@ -23,7 +24,7 @@ shaders.vertex = `
 /* ***************** FRAGMENT SHADER **************************************** */
 
 shaders.fragment = `
-  precision lowp float;
+  precision highp float;
   
   // a max number we allow, can be upt to 16
   const int maxNbOfTextures = 1;
@@ -55,9 +56,19 @@ shaders.fragment = `
   varying  vec2 vUv;
 
   float myMod(float x, float y){
-    return x - (y * floor(x/y));
+    return x - (y * float(int(x/y)));
   }
   
+  /**
+  * Returns accurate MOD when arguments are approximate integers.
+  */
+  float modI(float a,float b) {
+      float m = a - floor( ( a + 0.5 ) / b) * b;
+      return floor( m + 0.5 );
+  }
+
+  
+    
   void main( void ) {
     
     
@@ -69,38 +80,19 @@ shaders.fragment = `
     float sliceHeight = 1.0 / nbSlicePerCol;
     
     // row/col index of the slice within the grid of slices
-    float rowTexture = nbSlicePerCol - 1.0 - floor(indexSliceToDisplay / nbSlicePerRow);
-    float colTexture = myMod( indexSliceToDisplay, nbSlicePerRow );
+    // (0.5 rounding is mandatory to deal with float as integers)
+    float rowTexture = nbSlicePerCol - 1.0 - floor( (indexSliceToDisplay + 0.5) / nbSlicePerRow);
+    float colTexture = modI( indexSliceToDisplay, nbSlicePerRow );
     
-    float indexSliceToDisplay2 = indexSliceToDisplay;
+    float indexSliceToDisplay2 = indexSliceToDisplay + 0.0;
     float nbSlicePerRow2 = nbSlicePerRow;
-    gl_FragColor = vec4(myMod(indexSliceToDisplay2 ,nbSlicePerRow2) / 23.0, 0.0 , 0.0, 1.0);
-    return;
     
-    if( (indexSliceToDisplay == 23.0) && (nbSlicePerRow == 23.0) &&  ( myMod( floor(indexSliceToDisplay), floor(nbSlicePerRow) ) == 23.0 ) ){
-    //if( mod( 23.0, nbSlicePerRow ) == 23.0 ){
-      gl_FragColor = vec4(1.0, 0.0 , 0.0, 1.0);
-      return;
-    }
-    
-    /*
-    if( colTexture == nbSlicePerRow ){
-      colTexture = 0.0;
-      rowTexture = rowTexture + 1.0;
-    }
-    */
-  
     vec2 posInTexture = vec2(
       sliceWidth * colTexture + vUv.x * sliceWidth ,
       sliceHeight * rowTexture + vUv.y * sliceHeight
     );
     
-  
-    
-
     gl_FragColor = texture2D(textures[0], posInTexture);
-    //gl_FragColor = texture2D(textures[0], vUv);
-    //gl_FragColor = vec4(float(indexSliceToDisplay) / 256., 0.0 , 0.0, 1.0);
   }
 
 `
