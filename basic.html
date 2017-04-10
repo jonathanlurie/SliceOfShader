@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Three.js Geometry Browser</title>
+  <style>
+  
+  
+  body {
+    margin:0;
+    font-family: 'monospace';
+    font-size: 15px;
+    line-height: 18px;
+    overflow: hidden;
+  }
+  
+  </style>
+</head>
+<body>
+  
+  <script src="https://threejs.org/build/three.min.js"></script>
+  <script src='https://threejs.org/examples/js/libs/dat.gui.min.js'></script>
+  <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+  
+  <script src="js/shaders.js"></script>
+  <script>
+  
+  var gui = null
+  var guiParam = {};
+  var spaceLength = {
+    x: 176,
+    y: 256,
+    z: 256
+  }
+  var renderer = null
+  var scene = null
+  var camera = null
+  var container = null
+  var shaderMat = null;
+  var boxHelper = null;
+  var screenContainer = null;
+  
+  function init(){
+    
+    // init renderer
+    renderer = new THREE.WebGLRenderer( { antialias: false } );
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setClearColor( 0xEEEEEE, 1 );
+    document.body.appendChild( renderer.domElement );
+    
+    // THREE environment
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    var orbit = new THREE.OrbitControls( camera, renderer.domElement );
+    
+    container = new THREE.Object3D();
+    scene.add( container );
+    
+    initGui();
+    initScreen();
+    initBox();
+    
+  }
+  
+  
+  function initGui(){
+    gui = new dat.GUI();
+    guiParam.sliceIndex = 23;
+    gui.add(guiParam, 'sliceIndex', 0, 256)
+    .step(1)
+    .name("Slice")
+    .onChange(function(indexSliceToDisplay){
+      var uniforms = shaderMat.uniforms;
+      uniforms.indexSliceToDisplay.value = indexSliceToDisplay;
+    
+    })
+    
+  }
+  
+  /**
+  * Initialize the ouside box
+  */
+  function initBox(xspaceLength, yspaceLength, zspaceLength){
+    var boxMaterial = new THREE.MeshBasicMaterial();
+    var boxGeom = new THREE.CubeGeometry(
+      spaceLength.x,
+      spaceLength.y,
+      spaceLength.z
+    );
+    var boxMesh = new THREE.Mesh( boxGeom, boxMaterial )
+    boxHelper = new THREE.EdgesHelper( boxMesh, 0xff9999 );
+    container.add( boxHelper );  
+    // adjust the camera to the box
+    camera.position.z = spaceLength.z;
+  }
+  
+  
+  function initScreen(){
+    screenContainer = new THREE.Object3D();
+    
+    var mosaicTexture = THREE.ImageUtils.loadTexture( "data/176_256_256_zspace.png" )
+    mosaicTexture.magFilter = THREE.NearestFilter;
+    mosaicTexture.minFilter = THREE.NearestFilter;
+    //mosaicTexture.flipY = false;
+    
+    shaderMat = new THREE.ShaderMaterial( {
+      uniforms: {
+        // the textures
+        nbOfTextureUsed: {
+          type: "i",
+          value: 1
+        },
+        // the number of slice per row
+        nbSlicePerRow: {
+          type: "f",
+          value: 23.0
+        },
+        // the number of slice per column
+        nbSlicePerCol: {
+          type: "f",
+          value: 12.0
+        },
+        // the number of slice in total
+        nbSliceTotal: {
+          type: "f",
+          value: spaceLength.z  // because along zspace
+        },
+        // the index of the slice to display
+        indexSliceToDisplay: {
+          type: "f",
+          value: guiParam.sliceIndex 
+        },
+        // xspace length
+        xspaceLength: {
+          type: "f",
+          value: spaceLength.x 
+        },
+        // yspace length
+        yspaceLength: {
+          type: "f",
+          value: spaceLength.y 
+        },
+        // zspace length
+        zspaceLength: {
+          type: "f",
+          value: spaceLength.z 
+        },
+        textures: {
+          type: "t",
+          value:  [mosaicTexture]
+        }
+      }
+      ,
+      vertexShader: shaders.vertex,
+      fragmentShader: shaders.fragment,
+      side: THREE.DoubleSide,
+      transparent: true
+    });
+    
+    
+    var geometry = new THREE.PlaneBufferGeometry( spaceLength.x, spaceLength.y, 1 );
+    var plane = new THREE.Mesh( geometry, shaderMat );
+    screenContainer.add( plane );
+    
+    container.add( screenContainer );
+  }
+  
+  
+  function render() {
+    requestAnimationFrame( render );
+    renderer.render( scene, camera );
+  };
+  
+  
+  window.addEventListener( 'resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+  }, false );
+  
+  
+  
+  init();
+  render();
+  
+  </script>
+</body>
+</html>

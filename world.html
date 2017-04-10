@@ -1,0 +1,272 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Three.js Geometry Browser</title>
+  <style>
+  
+  
+  body {
+    margin:0;
+    font-family: 'monospace';
+    font-size: 15px;
+    line-height: 18px;
+    overflow: hidden;
+  }
+  
+  #info{
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 5px;
+    pointer-events: none;
+  }
+  
+  </style>
+</head>
+<body>
+  
+  <div id="info"></div>
+  
+  <script src="https://threejs.org/build/three.min.js"></script>
+  <script src='https://threejs.org/examples/js/libs/dat.gui.min.js'></script>
+  <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+  
+  <script src="js/shaders.js"></script>
+  <script>
+  
+  var gui = null
+  var guiParam = {};
+  var spaceLength = {
+    x: 176,
+    y: 256,
+    z: 256
+  }
+  var renderer = null
+  var scene = null
+  var camera = null
+  var container = null
+  var shaderMat = null;
+  var boxHelper = null;
+  var screenContainer = null;
+  
+  function init(){
+    
+    // init renderer
+    renderer = new THREE.WebGLRenderer( { antialias: false } );
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setClearColor( 0xEEEEEE, 1 );
+    document.body.appendChild( renderer.domElement );
+    
+    // THREE environment
+    scene = new THREE.Scene();
+    var axisHelper = new THREE.AxisHelper( 10 );
+    scene.add( axisHelper );
+
+    camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    var orbit = new THREE.OrbitControls( camera, renderer.domElement );
+    
+    container = new THREE.Object3D();
+    scene.add( container );
+    
+    initGui();
+    initBox();
+    
+    loadingImage();
+  }
+  
+  
+  function loadingImage(){
+    var infoDiv = document.getElementById("info");
+    infoDiv.innerHTML = "Loading data...";
+    
+    // instantiate a loader
+    var loader = new THREE.TextureLoader();
+
+    // load a resource
+    loader.load(
+    	// resource URL
+    	'data/176_256_256_zspace.jpg',
+    	// Function when resource is loaded
+    	function ( texture ) {
+        infoDiv.innerHTML = "";
+        initScreen(texture)
+    	},
+      
+    	// Function called when download progresses
+    	function ( xhr ) {
+    		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+    	},
+      
+    	// Function called when download errors
+    	function ( xhr ) {
+    		console.log( 'An error happened' );
+    	}
+    );
+  }
+  
+  function initGui(){
+    gui = new dat.GUI();
+    
+    guiParam.xPos = Math.floor(spaceLength.x / 2);
+    gui.add(guiParam, 'xPos', 0, spaceLength.x)
+    .step(1)
+    .onChange(function(val){
+      screenContainer.position.x = val - spaceLength.x / 2;
+    })
+    
+    guiParam.yPos = Math.floor(spaceLength.y / 2);
+    gui.add(guiParam, 'yPos', 0, spaceLength.y)
+    .step(1)
+    .onChange(function(val){
+      screenContainer.position.y = val - spaceLength.y / 2;
+    })
+    
+    guiParam.zPos = Math.floor(spaceLength.z / 2);
+    gui.add(guiParam, 'zPos', 0, spaceLength.z)
+    .step(1)
+    .onChange(function(val){
+      screenContainer.position.z = val - spaceLength.z / 2;
+    })
+    
+    guiParam.xRot = 0;
+    gui.add(guiParam, 'xRot', -Math.PI/2, Math.PI/2)
+    .step(Math.PI/2 / 100)
+    .onChange(function(val){
+      screenContainer.rotation.x = val;
+    })
+    
+    guiParam.yRot = 0;
+    gui.add(guiParam, 'yRot', -Math.PI/2, Math.PI/2)
+    .step(Math.PI/2 / 100)
+    .onChange(function(val){
+      screenContainer.rotation.y = val;
+    })
+    
+    guiParam.zRot = 0;
+    gui.add(guiParam, 'zRot', -Math.PI/2, Math.PI/2)
+    .step(Math.PI/2 / 100)
+    .onChange(function(val){
+      screenContainer.rotation.z = val;
+    })
+    
+  }
+  
+  /**
+  * Initialize the ouside box
+  */
+  function initBox(xspaceLength, yspaceLength, zspaceLength){
+    var boxMaterial = new THREE.MeshBasicMaterial();
+    var boxGeom = new THREE.CubeGeometry(
+      spaceLength.x,
+      spaceLength.y,
+      spaceLength.z
+    );
+    var boxMesh = new THREE.Mesh( boxGeom, boxMaterial )
+    boxHelper = new THREE.EdgesHelper( boxMesh, 0xff9999 );
+    container.add( boxHelper );  
+    // adjust the camera to the box
+    camera.position.z = spaceLength.z;
+  }
+  
+  
+  function initScreen(mosaicTexture){
+    screenContainer = new THREE.Object3D();
+    
+
+    mosaicTexture.magFilter = THREE.NearestFilter;
+    mosaicTexture.minFilter = THREE.NearestFilter;
+    //mosaicTexture.flipY = false;
+    
+    shaderMat = new THREE.ShaderMaterial( {
+      uniforms: {
+        // the textures
+        nbOfTextureUsed: {
+          type: "i",
+          value: 1
+        },
+        // the number of slice per row
+        nbSlicePerRow: {
+          type: "f",
+          value: 23.0
+        },
+        // the number of slice per column
+        nbSlicePerCol: {
+          type: "f",
+          value: 12.0
+        },
+        // the number of slice in total
+        nbSliceTotal: {
+          type: "f",
+          value: spaceLength.z  // because along zspace
+        },
+        // xspace length
+        xspaceLength: {
+          type: "f",
+          value: spaceLength.x 
+        },
+        // yspace length
+        yspaceLength: {
+          type: "f",
+          value: spaceLength.y 
+        },
+        // zspace length
+        zspaceLength: {
+          type: "f",
+          value: spaceLength.z 
+        },
+        textures: {
+          type: "t",
+          value:  [mosaicTexture]
+        }
+      }
+      ,
+      vertexShader: shaders.vertex,
+      fragmentShader: shaders.fragmentWorld,
+      side: THREE.DoubleSide,
+      transparent: true
+    });
+    
+    
+    var zPlaneGeometry = new THREE.PlaneBufferGeometry( spaceLength.x, spaceLength.y, 1 );
+    var zPlaneMesh = new THREE.Mesh( zPlaneGeometry, shaderMat );
+    screenContainer.add( zPlaneMesh );
+    
+    var xPlaneGeometry = new THREE.PlaneBufferGeometry( spaceLength.z, spaceLength.y, 1 );
+    var xPlaneMesh = new THREE.Mesh( xPlaneGeometry, shaderMat );
+    xPlaneMesh.rotation.y = Math.PI / 2;
+    screenContainer.add( xPlaneMesh );
+    
+    var zPlaneGeometry = new THREE.PlaneBufferGeometry( spaceLength.x, spaceLength.z, 1 );
+    var zPlaneMesh = new THREE.Mesh( zPlaneGeometry, shaderMat );
+    zPlaneMesh.rotation.x = Math.PI / 2;
+    screenContainer.add( zPlaneMesh );
+    
+    container.add( screenContainer );
+  }
+  
+  
+  function render() {
+    requestAnimationFrame( render );
+    renderer.render( scene, camera );
+  };
+  
+  
+  window.addEventListener( 'resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+  }, false );
+  
+  
+  
+  init();
+  render();
+  
+  </script>
+</body>
+</html>
