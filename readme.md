@@ -1,3 +1,5 @@
-Fooling around with Pixpipejs, Threejs and 3D neuro datasets
+Fooling around with [Pixpipejs](https://github.com/jonathanlurie/pixpipejs), [Threejs](https://threejs.org/) and 3D neuro datasets.
 
-- [world coordinates example](jonathanlurie.github.io/SliceOfShader/world.html)
+**DEMOS:**
+- [world coordinates planes](jonathanlurie.github.io/SliceOfShader/world.html)
+- [world coordinates arbitrary shape](jonathanlurie.github.io/SliceOfShader/worldshape.html)
