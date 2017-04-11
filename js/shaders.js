@@ -150,6 +150,7 @@ shaders.fragmentWorld = `
         return;
     }
     
+    // color at the edges of the volume
     float edgeSize = 0.5;
     if(worldCoordShifted.x < edgeSize || worldCoordShifted.x > (xspaceLength - edgeSize) ||
        worldCoordShifted.y < edgeSize || worldCoordShifted.y > (yspaceLength - edgeSize) ||
