@@ -141,11 +141,21 @@ shaders.fragmentWorld = `
     // so worldCoordShifted is like worldCoord but shifted of half size in each direction
     vec3 worldCoordShifted = vec3( worldCoord.x + xspaceLength/2.0, worldCoord.y + yspaceLength/2.0, worldCoord.z + zspaceLength/2.0);
     
+    // hide the outside
     if(worldCoordShifted.x < 0.0 || worldCoordShifted.x > xspaceLength ||
       worldCoordShifted.y < 0.0 || worldCoordShifted.y > yspaceLength ||
       worldCoordShifted.z < 0.0 || worldCoordShifted.z > zspaceLength)
     {
         discard;
+        return;
+    }
+    
+    float edgeSize = 0.5;
+    if(worldCoordShifted.x < edgeSize || worldCoordShifted.x > (xspaceLength - edgeSize) ||
+       worldCoordShifted.y < edgeSize || worldCoordShifted.y > (yspaceLength - edgeSize) ||
+       worldCoordShifted.z < edgeSize || worldCoordShifted.z > (zspaceLength - edgeSize) )
+    {
+        gl_FragColor = vec4(0.7, 0.7, 1.0, 1.0);
         return;
     }
     
