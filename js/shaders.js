@@ -409,7 +409,7 @@ shaders.fragmentMultipleInterpolation = `
       sliceHeight * rowTexture + (1.0 / nbSlicePerCol  - swc.y/yspaceLength * sliceHeight)
     );
 
-    vec4 color;// = texture2D(textures[0], posInTexture);
+    vec4 color;
 
     if(indexTextureInUse == 0){
       color = texture2D(textures[0], posInTexture);

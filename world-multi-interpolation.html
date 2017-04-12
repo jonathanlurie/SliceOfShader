@@ -56,9 +56,9 @@
 
   var textureLoader = null;
   var texturePaths = [
-    'data/176_256_256_zspace_10x9_0.jpg',
-    'data/176_256_256_zspace_10x9_1.jpg',
-    'data/176_256_256_zspace_10x9_2.jpg'
+    'data/176_256_256_zspace_9x10_0.png',
+    'data/176_256_256_zspace_9x10_1.png',
+    'data/176_256_256_zspace_9x10_2.png'
   ];
 
   var textures = [];
@@ -137,7 +137,7 @@
   function initGui(){
     gui = new dat.GUI();
 
-    guiParam.xPos = Math.floor(spaceLength.x / 2);
+    guiParam.xPos = Math.floor(spaceLength.x / 2) + 0.5;
     gui.add(guiParam, 'xPos', 0, spaceLength.x)
     .step(0.05)
     .onChange(function(val){
@@ -219,12 +219,12 @@
         // the number of slice per row
         nbSlicePerRow: {
           type: "f",
-          value: 10.0
+          value: 9.0
         },
         // the number of slice per column
         nbSlicePerCol: {
           type: "f",
-          value: 9.0
+          value: 10.0
         },
         // the number of slice in total
         nbSliceTotal: {
@@ -278,6 +278,14 @@
     zPlaneMesh.rotation.x = Math.PI / 2;
     screenContainer.add( zPlaneMesh );
 
+    screenContainer.position.x = guiParam.xPos - spaceLength.x / 2;
+    screenContainer.position.y = guiParam.yPos - spaceLength.y / 2;
+    screenContainer.position.z = guiParam.zPos - spaceLength.z / 2;
+    
+    screenContainer.rotation.x = guiParam.xRot;
+    screenContainer.rotation.y = guiParam.yRot;
+    screenContainer.rotation.z = guiParam.zRot;
+    
     container.add( screenContainer );
   }
 
