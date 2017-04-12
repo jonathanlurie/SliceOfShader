@@ -56,9 +56,9 @@
 
   var textureLoader = null;
   var texturePaths = [
-    'data/176_256_256_zspace_0.png',
-    'data/176_256_256_zspace_1.png',
-    'data/176_256_256_zspace_2.png'
+    'data/176_256_256_zspace_10x9_0.jpg',
+    'data/176_256_256_zspace_10x9_1.jpg',
+    'data/176_256_256_zspace_10x9_2.jpg'
   ];
 
   var textures = [];
@@ -139,21 +139,21 @@
 
     guiParam.xPos = Math.floor(spaceLength.x / 2);
     gui.add(guiParam, 'xPos', 0, spaceLength.x)
-    .step(1)
+    .step(0.05)
     .onChange(function(val){
       screenContainer.position.x = val - spaceLength.x / 2;
     })
 
     guiParam.yPos = Math.floor(spaceLength.y / 2);
     gui.add(guiParam, 'yPos', 0, spaceLength.y)
-    .step(1)
+    .step(0.05)
     .onChange(function(val){
       screenContainer.position.y = val - spaceLength.y / 2;
     })
 
     guiParam.zPos = Math.floor(spaceLength.z / 2);
     gui.add(guiParam, 'zPos', 0, spaceLength.z)
-    .step(1)
+    .step(0.05)
     .onChange(function(val){
       screenContainer.position.z = val - spaceLength.z / 2;
     })
@@ -218,7 +218,7 @@
         // the number of slice per column
         nbSlicePerCol: {
           type: "f",
-          value: 10.0
+          value: 9.0
         },
         // the number of slice in total
         nbSliceTotal: {

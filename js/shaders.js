@@ -192,7 +192,7 @@ shaders.fragmentMultiple = `
   precision highp float;
 
   // a max number we allow, can be upt to 16
-  const int maxNbOfTextures = 10;
+  const int maxNbOfTextures = 16;
 
   // Number of texture used with this dataset
   // cannot be higher than maxNbOfTextures
@@ -218,16 +218,12 @@ shaders.fragmentMultiple = `
   varying  vec4 worldCoord;
   varying  vec2 vUv;
 
-  float myMod(float x, float y){
-    return x - (y * float(int(x/y)));
-  }
-
   /**
   * Returns accurate MOD when arguments are approximate integers.
   */
   float modI(float a,float b) {
-      float m = a - floor( ( a + 0.5 ) / b) * b;
-      return floor( m + 0.5 );
+      float m = a - floor( ( a + 0.05 ) / b) * b;
+      return floor( m + 0.05 );
   }
 
 
@@ -261,67 +257,75 @@ shaders.fragmentMultiple = `
     float sliceWidth = 1.0 / nbSlicePerRow;
     float sliceHeight = 1.0 / nbSlicePerCol;
 
-    float indexSliceToDisplay = floor(worldCoordShifted.z + 0.5);
-
+    float indexSliceToDisplay = floor(worldCoordShifted.z + 0.05);
     int indexTextureInUse = int(floor(indexSliceToDisplay / (nbSlicePerRow*nbSlicePerCol) ));
 
-    // row/col index of the slice within the grid of slices
-    // (0.5 rounding is mandatory to deal with float as integers)
-    //float rowTextureAbsolute = nbSlicePerCol - 1.0 - floor( (indexSliceToDisplay + 0.5) / nbSlicePerRow);
-    //float rowTexture = modI(rowTextureAbsolute, nbSlicePerRow*nbSlicePerCol);
-    //float colTexture = modI( indexSliceToDisplay, nbSlicePerRow );
-
-
-    float rowTextureAbsolute = floor( (indexSliceToDisplay + 0.5) / nbSlicePerRow);
+    
+    // orig mais a l'envers
+    float rowTextureAbsolute = floor( (indexSliceToDisplay + 0.05) / nbSlicePerRow);
     float rowTexture = rowTextureAbsolute - (float(indexTextureInUse) * nbSlicePerCol) ;
     float colTexture = modI( indexSliceToDisplay, nbSlicePerRow );
-
+    
     vec2 posInTexture = vec2(
-      sliceWidth * colTexture + worldCoordShifted.x/xspaceLength * sliceWidth ,
-      sliceHeight * rowTexture + worldCoordShifted.y/yspaceLength * sliceHeight
+      sliceWidth * colTexture + ( worldCoordShifted.x/xspaceLength * sliceWidth) ,
+      sliceHeight * rowTexture + (1.0 / nbSlicePerCol  - worldCoordShifted.y/yspaceLength * sliceHeight)
     );
 
-
-
-    //vec4 color = texture2D(textures[0], posInTexture);
+    vec4 color = texture2D(textures[0], posInTexture);
 
 
     if(indexTextureInUse == 0){
-      //color = texture2D(textures[0], posInTexture);
-      gl_FragColor = texture2D(textures[0], posInTexture);
-      //gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-      //return;
+      color = texture2D(textures[0], posInTexture);
+      
     }else if(indexTextureInUse == 1){
-      //color = texture2D(textures[1], posInTexture);
-      //gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-      gl_FragColor = texture2D(textures[1], posInTexture);
-      //return;
+      color = texture2D(textures[1], posInTexture);
+      
     }else if(indexTextureInUse == 2){
-      //color = texture2D(textures[3], posInTexture);
-      //gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
-      gl_FragColor = texture2D(textures[2], posInTexture);
-      return;
+      color = texture2D(textures[2], posInTexture);
+      
     }else if(indexTextureInUse == 3){
-      //color = texture2D(textures[4], posInTexture);
-      //gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
-      //return;
+      color = texture2D(textures[3], posInTexture);
+      
     }else if(indexTextureInUse == 4){
-
+      color = texture2D(textures[4], posInTexture);
+      
     }else if(indexTextureInUse == 5){
-
+      color = texture2D(textures[5], posInTexture);
+      
     }else if(indexTextureInUse == 6){
-
+      color = texture2D(textures[6], posInTexture);
+      
     }else if(indexTextureInUse == 7){
-
+      color = texture2D(textures[7], posInTexture);
+      
     }else if(indexTextureInUse == 8){
-
+      color = texture2D(textures[8], posInTexture);
+      
     }else if(indexTextureInUse == 9){
-
+      color = texture2D(textures[9], posInTexture);
+      
+    }else if(indexTextureInUse == 10){
+      color = texture2D(textures[10], posInTexture);
+      
+    }else if(indexTextureInUse == 11){
+      color = texture2D(textures[11], posInTexture);
+      
+    }else if(indexTextureInUse == 12){
+      color = texture2D(textures[12], posInTexture);
+      
+    }else if(indexTextureInUse == 13){
+      color = texture2D(textures[13], posInTexture);
+      
+    }else if(indexTextureInUse == 14){
+      color = texture2D(textures[14], posInTexture);
+      
+    }else if(indexTextureInUse == 15){
+      color = texture2D(textures[15], posInTexture);
     }
 
 
 
-    //gl_FragColor = color;
+    gl_FragColor = color;
 
 
 
