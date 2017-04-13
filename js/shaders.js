@@ -388,19 +388,35 @@ shaders.fragmentMultipleInterpolation = `
   * Returns accurate MOD when arguments are approximate integers.
   */
   float modI(float a,float b) {
-      float m = a - floor( ( a + 0.05 ) / b) * b;
-      return floor( m + 0.05 );
+      float m = a - floor( ( a + 0.0001 ) / b) * b;
+      return floor( m + 0.0001 );
   }
 
 
   // return the color corresponding to the given shifted world cooridinates
   // using a neirest neighbors approx (no interpolation)
   vec4 getIntensityWorldNearest(vec3 swc){
-
-    float indexSliceToDisplay = floor(swc.z + 0.05);
+    /*
+    // from the first world
+    float indexSliceToDisplay = floor(swc.z + 0.5);
     int indexTextureInUse = int(floor(indexSliceToDisplay / (nbSlicePerRow*nbSlicePerCol) ));
+    
+    float rowTexture = nbSlicePerCol - 1.0 - floor( (indexSliceToDisplay + 0.5) / nbSlicePerRow);
+    float colTexture = modI( indexSliceToDisplay, nbSlicePerRow );
 
-    float rowTextureAbsolute = floor( (indexSliceToDisplay + 0.05) / nbSlicePerRow);
+    vec2 posInTexture = vec2(
+      sliceWidth * colTexture + swc.x/xspaceLength * sliceWidth ,
+      sliceHeight * rowTexture + swc.y/yspaceLength * sliceHeight
+    );
+    */
+    
+    float rounder = 0.0001;
+    
+    // to be kept
+    float indexSliceToDisplay = floor(swc.z + rounder);
+    int indexTextureInUse = int(floor(rounder + indexSliceToDisplay / (nbSlicePerRow*nbSlicePerCol)));
+
+    float rowTextureAbsolute = floor( (indexSliceToDisplay + rounder) / nbSlicePerRow);
     float rowTexture = rowTextureAbsolute - (float(indexTextureInUse) * nbSlicePerCol) ;
     float colTexture = modI( indexSliceToDisplay, nbSlicePerRow );
     
@@ -413,10 +429,8 @@ shaders.fragmentMultipleInterpolation = `
 
     if(indexTextureInUse == 0){
       color = texture2D(textures[0], posInTexture);
-      
     }else if(indexTextureInUse == 1){
       color = texture2D(textures[1], posInTexture);
-      
     }else if(indexTextureInUse == 2){
       color = texture2D(textures[2], posInTexture);
       
@@ -536,13 +550,15 @@ shaders.fragmentMultipleInterpolation = `
         return;
     }
 
+    /*
     // color at the edges of the volume
     if( isInternalEdge(worldCoordShifted) )
     {
         gl_FragColor = vec4(0.7, 0.7, 1.0, 1.0);
         return;
     }
-
+    */
+    
     vec4 color;
     
     if(trilinearInterpol){
