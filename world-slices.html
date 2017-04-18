@@ -79,7 +79,7 @@
     renderer = new THREE.WebGLRenderer( { antialias: false } );
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
-    renderer.setClearColor( 0x000000, 1 );
+    renderer.setClearColor( 0xEEEEEE, 1 );
     document.body.appendChild( renderer.domElement );
     textureLoader = new THREE.TextureLoader();
 
@@ -94,7 +94,7 @@
     container = new THREE.Object3D();
     scene.add( container );
 
-    initGui();
+    
     initBox();
 
     //loadingImage();
@@ -147,46 +147,13 @@
   function initGui(){
     gui = new dat.GUI();
 
-    guiParam.xPos = Math.floor(spaceLength.x / 2);
-    gui.add(guiParam, 'xPos', 0, spaceLength.x)
-    .step(0.05)
+    guiParam.visibleSlices = screenContainer.children.length
+    gui.add(guiParam, 'visibleSlices', 0, screenContainer.children.length)
+    .step(1)
     .onChange(function(val){
-      screenContainer.position.x = val - spaceLength.x / 2;
-    })
-
-    guiParam.yPos = Math.floor(spaceLength.y / 2);
-    gui.add(guiParam, 'yPos', 0, spaceLength.y)
-    .step(0.05)
-    .onChange(function(val){
-      screenContainer.position.y = val - spaceLength.y / 2;
-    })
-
-    guiParam.zPos = Math.floor(spaceLength.z / 2);
-    gui.add(guiParam, 'zPos', 0, spaceLength.z)
-    .step(0.05)
-    .onChange(function(val){
-      screenContainer.position.z = val - spaceLength.z / 2;
-    })
-
-    guiParam.xRot = 0;
-    gui.add(guiParam, 'xRot', -Math.PI/2, Math.PI/2)
-    .step(Math.PI/2 / 500)
-    .onChange(function(val){
-      screenContainer.rotation.x = val;
-    })
-
-    guiParam.yRot = 0;
-    gui.add(guiParam, 'yRot', -Math.PI/2, Math.PI/2)
-    .step(Math.PI/2 / 500)
-    .onChange(function(val){
-      screenContainer.rotation.y = val;
-    })
-
-    guiParam.zRot = 0;
-    gui.add(guiParam, 'zRot', -Math.PI/2, Math.PI/2)
-    .step(Math.PI/2 / 500)
-    .onChange(function(val){
-      screenContainer.rotation.z = val;
+      for(var i=0; i<screenContainer.children.length; i++){
+        screenContainer.children[i].visible = (i < val );
+      }
     })
 
     guiParam.triliInterpol = false;
@@ -275,29 +242,23 @@
     var largestSide = Math.sqrt(spaceLength.x*spaceLength.x + spaceLength.y*spaceLength.y + spaceLength.z*spaceLength.z) * 2;
 
 
-    for(var i=Math.floor(-spaceLength.z / 2); i<Math.ceil(spaceLength.z / 2); i+=20){
-      console.log(i);
+    for(var i=Math.floor(-spaceLength.z / 2); i<Math.ceil(spaceLength.z / 2); i+=2){
       var planeGeometry = new THREE.PlaneBufferGeometry( largestSide, largestSide, 1 );
       var planeMesh = new THREE.Mesh( planeGeometry, shaderMat );
       planeMesh.position.z = i;
       screenContainer.add( planeMesh );
     }
 
-    screenContainer.position.x = guiParam.xPos - spaceLength.x / 2;
-    screenContainer.position.y = guiParam.yPos - spaceLength.y / 2;
-    screenContainer.position.z = guiParam.zPos - spaceLength.z / 2;
-
-    screenContainer.rotation.x = guiParam.xRot;
-    screenContainer.rotation.y = guiParam.yRot;
-    screenContainer.rotation.z = guiParam.zRot;
-
-    console.log(screenContainer);
-
     container.add( screenContainer );
+    
+    initGui();
   }
 
 
   function render() {
+    if(screenContainer)
+      screenContainer.lookAt( camera.position );
+      
     requestAnimationFrame( render );
     renderer.render( scene, camera );
   };

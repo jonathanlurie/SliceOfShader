@@ -606,9 +606,6 @@ shaders.fragmentSlices = `
   varying  vec4 worldCoord;
   varying  vec2 vUv;
 
-  // step to jump from a slice to another on a unit-sized texture
-  float sliceWidth = 1.0 / nbSlicePerRow;
-  float sliceHeight = 1.0 / nbSlicePerCol;
 
 
   /**
@@ -623,6 +620,9 @@ shaders.fragmentSlices = `
   // return the color corresponding to the given shifted world cooridinates
   // using a neirest neighbors approx (no interpolation)
   vec4 getIntensityWorldNearest(vec3 swc){
+    // step to jump from a slice to another on a unit-sized texture
+    float sliceWidth = 1.0 / nbSlicePerRow;
+    float sliceHeight = 1.0 / nbSlicePerCol;
 
     float rounder = 0.0001;
 
@@ -773,7 +773,16 @@ shaders.fragmentSlices = `
       color = getIntensityWorldNearest(worldCoordShifted);
     }
 
-    color.a = color.r;
+    // discard a few low intensity points...
+    if(color.r < 0.05){
+      discard;
+      return;
+    }
+    
+    // increase alpha (quickly) with intensity so that what is dark becomes transparent
+    color.a = 1.05 + (-1.0 / (15.0 * (color.r + 0.001)) );
+      
+    //color.a = color.r;
 
     gl_FragColor = color;
   }
