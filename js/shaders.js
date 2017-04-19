@@ -393,12 +393,15 @@ shaders.fragmentMultipleInterpolation = `
       return floor( m + 0.0001 );
   }
 
-
+  
   // return the color corresponding to the given shifted world cooridinates
   // using a neirest neighbors approx (no interpolation)
   vec4 getIntensityWorldNearest(vec3 swc){
+    // step to jump from a slice to another on a unit-sized texture
+    float sliceWidth = 1.0 / nbSlicePerRow;
+    float sliceHeight = 1.0 / nbSlicePerCol;
 
-    float rounder = 0.0001;
+    float rounder = 0.001;
 
     // to be kept
     float indexSliceToDisplay = floor(swc.z + rounder);
@@ -407,57 +410,60 @@ shaders.fragmentMultipleInterpolation = `
     float rowTextureAbsolute = floor( (indexSliceToDisplay + rounder) / nbSlicePerRow);
     float rowTexture = rowTextureAbsolute - (float(indexTextureInUse) * nbSlicePerCol) ;
     float colTexture = modI( indexSliceToDisplay, nbSlicePerRow );
-
+    
+    // switch to a center-pixel reference (shift of half a pixel in unit-sized texture)
+    float halpPixH = sliceWidth / xspaceLength / 2.0; 
+    float halpPixV = sliceHeight / yspaceLength / 2.0;
+    
+    // avoid being exactely between 2 slices because it can produce unpredictable result (stripes)
+    if(mod(swc.x, 0.5) == 0.0){
+      swc.x -= rounder;
+    }
+    
+    // avoid being exactely between 2 slices because it can produce unpredictable result (stripes)
+    if(mod(swc.y, 0.5) == 0.0){
+      swc.y -= rounder;
+    }
+    
+    // the actual textel 2D position of this 3D word coordinate
     vec2 posInTexture = vec2(
-      sliceWidth * colTexture + ( swc.x/xspaceLength * sliceWidth) ,
-      sliceHeight * rowTexture + (1.0 / nbSlicePerCol  - swc.y/yspaceLength * sliceHeight)
+      sliceWidth * colTexture + ( swc.x/xspaceLength * sliceWidth) + halpPixH,
+      sliceHeight * rowTexture + (1.0 / nbSlicePerCol  - swc.y/yspaceLength * sliceHeight) + halpPixV
     );
 
     vec4 color;
 
+    // fetching the color in the texture (loops are not allowed)
     if(indexTextureInUse == 0){
       color = texture2D(textures[0], posInTexture);
     }else if(indexTextureInUse == 1){
       color = texture2D(textures[1], posInTexture);
     }else if(indexTextureInUse == 2){
       color = texture2D(textures[2], posInTexture);
-
     }else if(indexTextureInUse == 3){
       color = texture2D(textures[3], posInTexture);
-
     }else if(indexTextureInUse == 4){
       color = texture2D(textures[4], posInTexture);
-
     }else if(indexTextureInUse == 5){
       color = texture2D(textures[5], posInTexture);
-
     }else if(indexTextureInUse == 6){
       color = texture2D(textures[6], posInTexture);
-
     }else if(indexTextureInUse == 7){
       color = texture2D(textures[7], posInTexture);
-
     }else if(indexTextureInUse == 8){
       color = texture2D(textures[8], posInTexture);
-
     }else if(indexTextureInUse == 9){
       color = texture2D(textures[9], posInTexture);
-
     }else if(indexTextureInUse == 10){
       color = texture2D(textures[10], posInTexture);
-
     }else if(indexTextureInUse == 11){
       color = texture2D(textures[11], posInTexture);
-
     }else if(indexTextureInUse == 12){
       color = texture2D(textures[12], posInTexture);
-
     }else if(indexTextureInUse == 13){
       color = texture2D(textures[13], posInTexture);
-
     }else if(indexTextureInUse == 14){
       color = texture2D(textures[14], posInTexture);
-
     }else if(indexTextureInUse == 15){
       color = texture2D(textures[15], posInTexture);
     }
@@ -617,79 +623,83 @@ shaders.fragmentSlices = `
   }
 
 
-  // return the color corresponding to the given shifted world cooridinates
-  // using a neirest neighbors approx (no interpolation)
-  vec4 getIntensityWorldNearest(vec3 swc){
-    // step to jump from a slice to another on a unit-sized texture
-    float sliceWidth = 1.0 / nbSlicePerRow;
-    float sliceHeight = 1.0 / nbSlicePerCol;
+  
+    // return the color corresponding to the given shifted world cooridinates
+    // using a neirest neighbors approx (no interpolation)
+    vec4 getIntensityWorldNearest(vec3 swc){
+      // step to jump from a slice to another on a unit-sized texture
+      float sliceWidth = 1.0 / nbSlicePerRow;
+      float sliceHeight = 1.0 / nbSlicePerCol;
 
-    float rounder = 0.0001;
+      float rounder = 0.001;
 
-    // to be kept
-    float indexSliceToDisplay = floor(swc.z + rounder);
-    int indexTextureInUse = int(floor(rounder + indexSliceToDisplay / (nbSlicePerRow*nbSlicePerCol)));
+      // to be kept
+      float indexSliceToDisplay = floor(swc.z + rounder);
+      int indexTextureInUse = int(floor(rounder + indexSliceToDisplay / (nbSlicePerRow*nbSlicePerCol)));
 
-    float rowTextureAbsolute = floor( (indexSliceToDisplay + rounder) / nbSlicePerRow);
-    float rowTexture = rowTextureAbsolute - (float(indexTextureInUse) * nbSlicePerCol) ;
-    float colTexture = modI( indexSliceToDisplay, nbSlicePerRow );
+      float rowTextureAbsolute = floor( (indexSliceToDisplay + rounder) / nbSlicePerRow);
+      float rowTexture = rowTextureAbsolute - (float(indexTextureInUse) * nbSlicePerCol) ;
+      float colTexture = modI( indexSliceToDisplay, nbSlicePerRow );
+      
+      // switch to a center-pixel reference (shift of half a pixel in unit-sized texture)
+      float halpPixH = sliceWidth / xspaceLength / 2.0; 
+      float halpPixV = sliceHeight / yspaceLength / 2.0;
+      
+      // avoid being exactely between 2 slices because it can produce unpredictable result (stripes)
+      if(mod(swc.x, 0.5) == 0.0){
+        swc.x -= rounder;
+      }
+      
+      // avoid being exactely between 2 slices because it can produce unpredictable result (stripes)
+      if(mod(swc.y, 0.5) == 0.0){
+        swc.y -= rounder;
+      }
+      
+      // the actual textel 2D position of this 3D word coordinate
+      vec2 posInTexture = vec2(
+        sliceWidth * colTexture + ( swc.x/xspaceLength * sliceWidth) + halpPixH,
+        sliceHeight * rowTexture + (1.0 / nbSlicePerCol  - swc.y/yspaceLength * sliceHeight) + halpPixV
+      );
 
-    vec2 posInTexture = vec2(
-      sliceWidth * colTexture + ( swc.x/xspaceLength * sliceWidth) ,
-      sliceHeight * rowTexture + (1.0 / nbSlicePerCol  - swc.y/yspaceLength * sliceHeight)
-    );
+      vec4 color;
 
-    vec4 color;
+      // fetching the color in the texture (loops are not allowed)
+      if(indexTextureInUse == 0){
+        color = texture2D(textures[0], posInTexture);
+      }else if(indexTextureInUse == 1){
+        color = texture2D(textures[1], posInTexture);
+      }else if(indexTextureInUse == 2){
+        color = texture2D(textures[2], posInTexture);
+      }else if(indexTextureInUse == 3){
+        color = texture2D(textures[3], posInTexture);
+      }else if(indexTextureInUse == 4){
+        color = texture2D(textures[4], posInTexture);
+      }else if(indexTextureInUse == 5){
+        color = texture2D(textures[5], posInTexture);
+      }else if(indexTextureInUse == 6){
+        color = texture2D(textures[6], posInTexture);
+      }else if(indexTextureInUse == 7){
+        color = texture2D(textures[7], posInTexture);
+      }else if(indexTextureInUse == 8){
+        color = texture2D(textures[8], posInTexture);
+      }else if(indexTextureInUse == 9){
+        color = texture2D(textures[9], posInTexture);
+      }else if(indexTextureInUse == 10){
+        color = texture2D(textures[10], posInTexture);
+      }else if(indexTextureInUse == 11){
+        color = texture2D(textures[11], posInTexture);
+      }else if(indexTextureInUse == 12){
+        color = texture2D(textures[12], posInTexture);
+      }else if(indexTextureInUse == 13){
+        color = texture2D(textures[13], posInTexture);
+      }else if(indexTextureInUse == 14){
+        color = texture2D(textures[14], posInTexture);
+      }else if(indexTextureInUse == 15){
+        color = texture2D(textures[15], posInTexture);
+      }
 
-    if(indexTextureInUse == 0){
-      color = texture2D(textures[0], posInTexture);
-    }else if(indexTextureInUse == 1){
-      color = texture2D(textures[1], posInTexture);
-    }else if(indexTextureInUse == 2){
-      color = texture2D(textures[2], posInTexture);
-
-    }else if(indexTextureInUse == 3){
-      color = texture2D(textures[3], posInTexture);
-
-    }else if(indexTextureInUse == 4){
-      color = texture2D(textures[4], posInTexture);
-
-    }else if(indexTextureInUse == 5){
-      color = texture2D(textures[5], posInTexture);
-
-    }else if(indexTextureInUse == 6){
-      color = texture2D(textures[6], posInTexture);
-
-    }else if(indexTextureInUse == 7){
-      color = texture2D(textures[7], posInTexture);
-
-    }else if(indexTextureInUse == 8){
-      color = texture2D(textures[8], posInTexture);
-
-    }else if(indexTextureInUse == 9){
-      color = texture2D(textures[9], posInTexture);
-
-    }else if(indexTextureInUse == 10){
-      color = texture2D(textures[10], posInTexture);
-
-    }else if(indexTextureInUse == 11){
-      color = texture2D(textures[11], posInTexture);
-
-    }else if(indexTextureInUse == 12){
-      color = texture2D(textures[12], posInTexture);
-
-    }else if(indexTextureInUse == 13){
-      color = texture2D(textures[13], posInTexture);
-
-    }else if(indexTextureInUse == 14){
-      color = texture2D(textures[14], posInTexture);
-
-    }else if(indexTextureInUse == 15){
-      color = texture2D(textures[15], posInTexture);
+      return color;
     }
-
-    return color;
-  }
 
 
   vec4 getIntensityWorldTrilinear( vec3 swc ){
