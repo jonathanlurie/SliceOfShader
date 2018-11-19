@@ -393,7 +393,7 @@ shaders.fragmentMultipleInterpolation = `
       return floor( m + 0.0001 );
   }
 
-  
+
   // return the color corresponding to the given shifted world cooridinates
   // using a neirest neighbors approx (no interpolation)
   vec4 getIntensityWorldNearest(vec3 swc){
@@ -410,21 +410,21 @@ shaders.fragmentMultipleInterpolation = `
     float rowTextureAbsolute = floor( (indexSliceToDisplay + rounder) / nbSlicePerRow);
     float rowTexture = rowTextureAbsolute - (float(indexTextureInUse) * nbSlicePerCol) ;
     float colTexture = modI( indexSliceToDisplay, nbSlicePerRow );
-    
+
     // switch to a center-pixel reference (shift of half a pixel in unit-sized texture)
-    float halpPixH = sliceWidth / xspaceLength / 2.0; 
+    float halpPixH = sliceWidth / xspaceLength / 2.0;
     float halpPixV = sliceHeight / yspaceLength / 2.0;
-    
+
     // avoid being exactely between 2 slices because it can produce unpredictable result (stripes)
     if(mod(swc.x, 0.5) == 0.0){
       swc.x -= rounder;
     }
-    
+
     // avoid being exactely between 2 slices because it can produce unpredictable result (stripes)
     if(mod(swc.y, 0.5) == 0.0){
       swc.y -= rounder;
     }
-    
+
     // the actual textel 2D position of this 3D word coordinate
     vec2 posInTexture = vec2(
       sliceWidth * colTexture + ( swc.x/xspaceLength * sliceWidth) + halpPixH,
@@ -602,6 +602,8 @@ shaders.fragmentSlices = `
   uniform float yspaceLength;
   uniform float zspaceLength;
 
+  uniform float transparency;
+
   // a texture will contain a certain number of slices
   uniform sampler2D textures[maxNbOfTextures];
 
@@ -623,7 +625,7 @@ shaders.fragmentSlices = `
   }
 
 
-  
+
     // return the color corresponding to the given shifted world cooridinates
     // using a neirest neighbors approx (no interpolation)
     vec4 getIntensityWorldNearest(vec3 swc){
@@ -640,21 +642,21 @@ shaders.fragmentSlices = `
       float rowTextureAbsolute = floor( (indexSliceToDisplay + rounder) / nbSlicePerRow);
       float rowTexture = rowTextureAbsolute - (float(indexTextureInUse) * nbSlicePerCol) ;
       float colTexture = modI( indexSliceToDisplay, nbSlicePerRow );
-      
+
       // switch to a center-pixel reference (shift of half a pixel in unit-sized texture)
-      float halpPixH = sliceWidth / xspaceLength / 2.0; 
+      float halpPixH = sliceWidth / xspaceLength / 2.0;
       float halpPixV = sliceHeight / yspaceLength / 2.0;
-      
+
       // avoid being exactely between 2 slices because it can produce unpredictable result (stripes)
       if(mod(swc.x, 0.5) == 0.0){
         swc.x -= rounder;
       }
-      
+
       // avoid being exactely between 2 slices because it can produce unpredictable result (stripes)
       if(mod(swc.y, 0.5) == 0.0){
         swc.y -= rounder;
       }
-      
+
       // the actual textel 2D position of this 3D word coordinate
       vec2 posInTexture = vec2(
         sliceWidth * colTexture + ( swc.x/xspaceLength * sliceWidth) + halpPixH,
@@ -788,12 +790,12 @@ shaders.fragmentSlices = `
       discard;
       return;
     }
-    
+
     // increase alpha (quickly) with intensity so that what is dark becomes transparent
     color.a = 1.05 + (-1.0 / (15.0 * (color.r + 0.001)) );
-      
-    //color.a = color.r;
 
+    //color.a = color.r;
+    color.a = transparency;
     gl_FragColor = color;
   }
 `
